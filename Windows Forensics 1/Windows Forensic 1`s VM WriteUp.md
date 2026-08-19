@@ -8,7 +8,7 @@ One of the Desktops in the research lab at Organization X is suspected to have b
 
 В папке triage содержатся материалы, там можно увидеть дамп диска C:\, оттуда берем SAM файл по пути C:\Windows\System32\Config\SAM и открываем его через Registry Explorer by EZ.
 
-![[Pasted image 20260818120514.png]]
+![Image alt](https://github.com/duckinlake/PickMe-DFIRing/blob/main/Windows%20Forensic%201/img/img1.png)
 
 Во вкладке с пользователями, SAM\Domains\Account\Users\ видим семь аккаунтов, четыре из них строенные (Administartor, Guest, DefaultAccount и WDAGUtilityAccount), а оставшиеся три созданные: THM-4n6 (под которым мы авторизованы), thm-user и thm-user2. 
 
@@ -38,25 +38,25 @@ How many user created accounts are present on the system?
 
 Распарсить всю эту информацию можно при помощи RegRipper. Закидываем туда SAM, указываем путь для репорта и запускаем утилиту.
 
-![[Pasted image 20260818124427.png]]
+![Image alt](https://github.com/duckinlake/PickMe-DFIRing/blob/main/Windows%20Forensic%201/img/img2.png)
 
 Открываем отчет, там видим информацию про аккаунты. Изучив все, отмечаем, что у пользователя thm-user2 `Last Login Date : Never`. Следовательно он никогда не заходил в аккаунт.
 
-![[Pasted image 20260818124416.png]]
+![Image alt](https://github.com/duckinlake/PickMe-DFIRing/blob/main/Windows%20Forensic%201/img/img3.png)
 
 What is the username of the account that has never been logged in?
 > thm-user2
 
 Переходим к следующему вопросу про пользователя THM-4n6. Смотрим ветку SAM\Domains\Account\Users\000003E9. Далее ищем значение UserPasswordHint и сразу можно увидеть преобразованное hex-значение `count`, которое и является подсказкой к паролю.
 
-![[Pasted image 20260818125851.png]]
+![Image alt](https://github.com/duckinlake/PickMe-DFIRing/blob/main/Windows%20Forensic%201/img/img4.png)
 
 What's the password hint for the user THM-4n6?
 >count
 
 Все полезное из SAM в данном кейсе мы извлекли, далее работа с файлами. Переходим к  NTUSER.DAT, персональным настройкам реестра конкретного пользователя, я решила начать с THM-4n6, тут ищу последние открытые документы в ветке `\Software\Microsoft\Windows\CurrentVersion\Explorer\RecentDocs`. Тут находится искомая информация про `Changelog.txt`.
 
-![[Pasted image 20260818131109.png]]
+![Image alt](https://github.com/duckinlake/PickMe-DFIRing/blob/main/Windows%20Forensic%201/img/img5.png)
 
 When was the file 'Changelog.txt' accessed?
 > 2021-11-24 18:18:48
@@ -65,22 +65,22 @@ When was the file 'Changelog.txt' accessed?
 
 В ветке пользователя с GUID \{CEBFF5CD-ACE2-4F4F-9178-9926F41749EA} есть запуски различных команд, фильтрую по количеству. Тут есть запуск инсталлятора python версии 3.8.2. Находится по пути: C:\Users\THM-4n6\Desktop\NTUSER.DAT_clean: SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\UserAssist\\{CEBFF5CD-ACE2-4F4F-9178-9926F41749EA}\Count
 
-![[Pasted image 20260818171302.png]]
+![Image alt](https://github.com/duckinlake/PickMe-DFIRing/blob/main/Windows%20Forensic%201/img/img6.png)
 
 What is the complete path from where the python 3.8.2 installer was run?
 > Z:\setups\python-3.8.2.exe
 
 Далее вопрос про USB. Информация про USB-устройства, подключенные к системе, хранится в  `SYSTEM\CurrentControlSet\Enum\USBSTOR` и `SYSTEM\CurrentControlSet\Enum\USB`. Перейдем во второе, там есть Disk ID и Serial Number устройств.
 
-![[Pasted image 20260818174112.png]]
+![Image alt](https://github.com/duckinlake/PickMe-DFIRing/blob/main/Windows%20Forensic%201/img/img7.png)
 
 В  `SOFTWARE\Microsoft\Windows Portable Devices\Devices` хранятся Friendly Name устройств. Определить к какому устройству относится то или иное можно через GUID (Disk ID), которые мы определили раньше. Т.е. {E25192...110} имеет Friendly Name USB. Это устройство Kingston DataTraveler 2.0 USB Device.
 
-![[Pasted image 20260818173722.png]]
+![Image alt](https://github.com/duckinlake/PickMe-DFIRing/blob/main/Windows%20Forensic%201/img/img8.png)
 
 Узнать время, когда последний раз подключали флэшку, можно в ветке `SYSTEM\CurrentControlSet\Enum\USBSTOR\Ven_Prod_Version\USBSerial#\Properties\{83da6326-97a6-4088-9453-a19231573b29}`. В нашем случае USBSerial# будет 1C6F65...&0. Переходим и в 0066 (что соответствует Last Time Connectes) хранится искомое время.
 
-![[Pasted image 20260818173100.png]]
+![Image alt](https://github.com/duckinlake/PickMe-DFIRing/blob/main/Windows%20Forensic%201/img/img9.png)
 
 When was the USB device with the friendly name 'USB' last connected?
 > 2021-11-24 18:40:06
