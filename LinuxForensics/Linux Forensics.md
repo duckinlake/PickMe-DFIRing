@@ -4,7 +4,7 @@
 sudo cat /etc/group | grep audio
 ```
 
-![[Pasted image 20260824120913.png]]
+![Image alt](https://github.com/duckinlake/PickMe-DFIRing/blob/main/LinuxForensics/img/img1.png)
 
 Which two users are the members of the group `audio`? Format user1,user2
 >ubuntu.pulse
@@ -14,7 +14,8 @@ Which two users are the members of the group `audio`? Format user1,user2
 sudo cat /etc/passwd | grep tryhackme
 ```
 
-![[Pasted image 20260824121035.png]]
+![Image alt](https://github.com/duckinlake/PickMe-DFIRing/blob/main/LinuxForensics/img/img2.png)
+
 
 In the attached VM, there is a user account named tryhackme. What is the uid of this account?
 > 1001
@@ -24,7 +25,7 @@ In the attached VM, there is a user account named tryhackme. What is the uid of 
 last -f /var/log/wmtp
 ```
 
-![[Pasted image 20260824121224.png]]
+![Image alt](https://github.com/duckinlake/PickMe-DFIRing/blob/main/LinuxForensics/img/img3.png)
 
 Видим искомый заход в 20:10, который продлился до 21:43, в скобочках указано итоговое время длительности сессии.
 
@@ -35,14 +36,14 @@ A session was started on this machine on Sat Apr 16 20:10. How long did this se
 
 Текущее имя машины хранится в файле `/etc/hostname`. Читаем файл, видим искомое имя
 
-![[Pasted image 20260824121534.png]]
+![Image alt](https://github.com/duckinlake/PickMe-DFIRing/blob/main/LinuxForensics/img/img4.png)
 
 What is the hostname of the attached VM?
 > Linux4n6
 
 Информация про таймзону хранится в файле `/etc/timezone`, также есть `localtime` с часовым поясом. Читаем, видим искомую.
 
-![[Pasted image 20260824121626.png]]
+![Image alt](https://github.com/duckinlake/PickMe-DFIRing/blob/main/LinuxForensics/img/img5.png)
 
 What is the timezone of the attached VM?
 >Asia/Karachi
@@ -52,7 +53,7 @@ What is the timezone of the attached VM?
 netstat -p | grep 5901
 ```
 
-![[Pasted image 20260824121804.png]]
+![Image alt](https://github.com/duckinlake/PickMe-DFIRing/blob/main/LinuxForensics/img/img6.png)
 
 What program is listening on the address 127.0.0.1:5901?
 > Xtigervnc
@@ -63,7 +64,7 @@ ps axj | grep Xtigervnc
 ps af | grep Xtigervnc
 ```
 
-![[Pasted image 20260824122148.png]]
+![Image alt](https://github.com/duckinlake/PickMe-DFIRing/blob/main/LinuxForensics/img/img7.png)
 
 What is the full path of this program?
 > /usr/bin/Xtigervnc
@@ -71,7 +72,7 @@ What is the full path of this program?
 # [0x05] Persistence mechanism
 Когда запускается командная строка, выполняется определенный набор команд. `/etc/bash.bashrc` - является общим конфигурационным файлом для командной оболочки Bash. Также для каждого пользователя есть индивидуальный файл `~/.bashrc`, который запускается при запуске командной строки. В задание читаем файл пользователя `ubuntu`, там есть переменные `HISTSIZE` - это количество строк (команд), которые хранятся в памяти во время сессии bash, `HISTFILESIZE` - это количество строк (команд), которые: допускаются в файл истории при запуске сессии, сохраняются в файле истории по окончании сессии bash (для использования в будущих сессиях). Нам нужно второе значение.
 
-![[Pasted image 20260824123651.png]]
+![Image alt](https://github.com/duckinlake/PickMe-DFIRing/blob/main/LinuxForensics/img/img8.png)
 
 In the bashrc file, the size of the history file is defined. What is the size of the history file that is set for the user Ubuntu in the attached machine?
 > 2000
@@ -83,7 +84,7 @@ In the bashrc file, the size of the history file is defined. What is the size of
 sudo cat /home/tryhackme/.bash_history | gep apt-get
 ```
 
-![[Pasted image 20260824124121.png]]
+![Image alt](https://github.com/duckinlake/PickMe-DFIRing/blob/main/LinuxForensics/img/img9.png)
 
 The user tryhackme used apt-get to install a package. What was the command that was issued?
 > sudo apt-get instal apache2
@@ -93,7 +94,7 @@ The user tryhackme used apt-get to install a package. What was the command that 
 cat ~/.bash_history
 ```
 
-![[Pasted image 20260824124344.png|414]]
+![Image alt](https://github.com/duckinlake/PickMe-DFIRing/blob/main/LinuxForensics/img/img10.png)
 
 What was the current working directory when the command to install net-tools was issued?
 > /home/ubuntu
@@ -102,15 +103,15 @@ What was the current working directory when the command to install net-tools was
 
 Syslog хранит информацию о системной активности, также там присутствует ротация логов, когда он доходит до определенного размера. Ищем в директории `/var/log` текущие файлы сислога, которые там есть.
 
-![[Pasted image 20260824125423.png]]
+![Image alt](https://github.com/duckinlake/PickMe-DFIRing/blob/main/LinuxForensics/img/img11.png)
 
 Видим четыре файла: два заархивированных и два недавних. В логах после даты пишется хостнейм. Читаем верх (самые последние записи) текущего файла. 
 
-![[Pasted image 20260824125445.png]]
+![Image alt](https://github.com/duckinlake/PickMe-DFIRing/blob/main/LinuxForensics/img/img12.png)
 
 Там нет нужного (нового) имени. Тогда при помощи qunzip разархивируем крайний файл. Читаем его верх (старые), там еще более старое имя, которое нам не подходит. Смотрим тогда последние записи: там находим искомый хостнейм. 
 
-![[Pasted image 20260824125406.png]]
+![Image alt](https://github.com/duckinlake/PickMe-DFIRing/blob/main/LinuxForensics/img/img13.png)
 
 Though the machine's current hostname is the one we identified in Task 4. The machine earlier had a different hostname. What was the previous hostname of the machine?
 > tryhackme
